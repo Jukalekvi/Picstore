@@ -10,3 +10,9 @@ Things to do next:
 - Upload first pictures to the database
 - Design the preliminary architecture of the application
 - Design the first version of the design for the application
+
+Start of the project was really good relearning of setting up a expo-project.
+
+# Tuesday 3.3.2026
+Projects directory was altered by separating expo/frontend related stuff to their own directory and backend related code to its own. Managing the different dependencies was really difficult at the beginning but once I managed to do the changes, the expo still worked perfectly.
+
