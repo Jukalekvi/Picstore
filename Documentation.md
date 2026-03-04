@@ -16,3 +16,6 @@ Start of the project was really good relearning of setting up a expo-project.
 # Tuesday 3.3.2026
 Projects directory was altered by separating expo/frontend related stuff to their own directory and backend related code to its own. Managing the different dependencies was really difficult at the beginning but once I managed to do the changes, the expo still worked perfectly.
 
+# Wednesday 4.3.2026
+Today I started the day by creating the first version of the backend while using Gradle and Springboot in IntelliJ. Although this was really difficult, I still managed to do it in the end and now I understand the differences in dependencies that the gradle uses and how the springboot needs to be declared in the project files.
+
