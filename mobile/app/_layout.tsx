@@ -19,6 +19,20 @@ export default function Layout() {
                 title: 'Camera',
               }}
           />
+            <Drawer.Screen
+                name="gallery"
+                options={{
+                    drawerLabel: 'Gallery',
+                    title: 'gallery',
+                }}
+            />
+            <Drawer.Screen
+                name="achievements"
+                options={{
+                    drawerLabel: 'Achievements',
+                    title: 'Achievements',
+                }}
+            />
         </Drawer>
       </GestureHandlerRootView>
   );

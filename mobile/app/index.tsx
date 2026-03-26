@@ -1,182 +1,67 @@
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { useRef, useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import { TextEncoder, TextDecoder } from 'text-encoding';
 
-export default function App() {
-  const [facing, setFacing] = useState<CameraType>('back');
-  const [permission, requestPermission] = useCameraPermissions();
-  const [photo, setPhoto] = useState<string | null>(null);
-  const cameraRef = useRef<CameraView>(null);
+Object.assign(global, { TextEncoder, TextDecoder });
 
-  if (!permission) {
-    return <View />;
-  }
+export default function HomeScreen() {
+  const [message, setMessage] = useState('No message yet...');
+  const [connected, setConnected] = useState(false);
+  const clientRef = useRef<Client | null>(null);
 
-  if (!permission.granted) {
-    return (
-        <View style={styles.container}>
-          <Text style={styles.message}>We need your permission to show the camera</Text>
-          <Button onPress={requestPermission} title="grant permission" />
-        </View>
-    );
-  }
+  useEffect(() => {
+    const client = new Client({
+      webSocketFactory: () => new SockJS('http://192.168.0.121:8080/ws'),
+      onConnect: () => {
+        setConnected(true);
+        client.subscribe('/queue/messages', (msg) => {
+          setMessage(msg.body);
+        });
+      },
+      onDisconnect: () => setConnected(false),
+      onStompError: (frame) => console.error('STOMP error', frame),
+    });
 
-  function toggleCameraFacing() {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
-  }
+    client.activate();
+    clientRef.current = client;
 
-  async function takePicture() {
-    if (cameraRef.current) {
-      const result = await cameraRef.current.takePictureAsync();
-      if (result?.uri) {
-        setPhoto(result.uri);
-      }
+    return () => { client.deactivate(); };
+  }, []);
+
+  const sendTrigger = () => {
+    if (!clientRef.current?.connected) {
+      console.warn('WebSocket not connected');
+      return;
     }
-  }
+    clientRef.current.publish({ destination: '/app/trigger' });
+  };
 
-  if (photo) {
-    return (
-        <View style={styles.container}>
-          <Text style={styles.confirmTitle}>Happy with this one?</Text>
-          <Image source={{ uri: photo }} style={styles.preview} />
-          <View style={styles.previewButtons}>
-            <TouchableOpacity style={styles.retakeButton} onPress={() => setPhoto(null)}>
-              <Text style={styles.retakeText}>Retake</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.confirmButton} onPress={() => { /* handle confirmed photo */ }}>
-              <Text style={styles.confirmButtonText}>Looks good!</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-    );
-  }
+  const clearMessage = () => {
+    setMessage('No message yet...');
+  };
 
   return (
       <View style={styles.container}>
-        {/* Text above the camera frame */}
-        <Text style={styles.cameraLabel}>Take your photo</Text>
-
-        {/* Square camera in the center */}
-        <View style={styles.cameraWrapper}>
-          <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
-        </View>
-
-        {/* Controls */}
-        <View style={styles.controls}>
-          <TouchableOpacity style={styles.flipButton} onPress={toggleCameraFacing}>
-            <Text style={styles.flipText}>Flip</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
-            <View style={styles.captureInner} />
-          </TouchableOpacity>
-
-          {/* Spacer to balance the flip button */}
-          <View style={styles.flipButton} />
+        <Text style={styles.status}>
+          {connected ? '🟢 Connected' : '🔴 Disconnected'}
+        </Text>
+        <Button title="Send Trigger" onPress={sendTrigger} disabled={!connected} />
+        <Button title="Clear Message" onPress={clearMessage} />
+        <View style={styles.messageBox}>
+          <Text style={styles.messageText}>{message}</Text>
         </View>
       </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 20 },
+  status: { fontSize: 16, fontWeight: 'bold' },
+  messageBox: {
+    marginTop: 20, padding: 20, borderWidth: 1,
+    borderColor: '#ccc', borderRadius: 8, minWidth: 280, alignItems: 'center'
   },
-  message: {
-    textAlign: 'center',
-    paddingBottom: 10,
-    color: '#fff',
-  },
-  cameraWrapper: {
-    width: 320,
-    height: 320,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  camera: {
-    flex: 1,
-  },
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: 320,
-    marginTop: 40,
-  },
-  flipButton: {
-    width: 60,
-    alignItems: 'center',
-  },
-  flipText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  captureButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 4,
-    borderColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  captureInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#fff',
-  },
-  cameraLabel: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  preview: {
-    width: 320,
-    height: 320,
-    borderRadius: 12,
-  },
-  confirmTitle: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  previewButtons: {
-    flexDirection: 'row',
-    marginTop: 32,
-    gap: 16,
-  },
-  retakeButton: {
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  retakeText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  confirmButton: {
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: '#fff',
-  },
-  confirmButtonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  messageText: { fontSize: 16, color: '#333' },
 });
