@@ -1,93 +1,95 @@
 import { StyleSheet } from 'react-native';
-import { COLORS, SPACING, SIZES } from './theme';
+import { SPACING, SIZES } from './theme';
 
-export const globalStyles = StyleSheet.create({
+export const getGlobalStyles = (colors: any) => StyleSheet.create({
     // --- LAYOUTS ---
     container: {
         flex: 1,
-        backgroundColor: COLORS.background,
+        backgroundColor: colors.background
     },
     centeredContent: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: SPACING.l,
+        backgroundColor: colors.background,
     },
     screenPadding: {
         paddingHorizontal: SPACING.l,
-        paddingTop: SPACING.header,
+        paddingTop: SPACING.header
     },
     mainTitle: {
         fontSize: SIZES.fontMainTitle,
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: SPACING.l,
-        color: COLORS.textMain,
+        color: colors.textMain,
     },
 
     // --- CARDS (Gallery) ---
     card: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderRadius: SIZES.radiusCard,
         marginBottom: SPACING.m,
         overflow: 'hidden',
         elevation: 3,
-        shadowColor: COLORS.black,
+        shadowColor: colors.black,
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
     },
     cardImage: {
         width: '100%',
-        height: 200,
+        height: 200
     },
     cardInfoRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingRight: SPACING.m,
+        paddingRight: SPACING.m
     },
     cardTextContainer: {
         padding: SPACING.m,
-        flex: 1,
+        flex: 1
     },
     speciesText: {
         fontSize: SIZES.fontLarge,
         fontWeight: 'bold',
-        color: COLORS.textMain,
+        color: colors.textMain
     },
 
     // --- FORMS & INPUTS ---
     formWrapper: {
         width: '100%',
         paddingTop: SPACING.modalTop,
-        alignItems: 'center',
+        alignItems: 'center'
     },
     formContainer: {
         width: '100%',
         alignItems: 'center',
-        padding: SPACING.l,
+        padding: SPACING.l
     },
     input: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         width: '100%',
         padding: 15,
         borderRadius: 10,
         fontSize: SIZES.fontLarge,
         marginBottom: 20,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: colors.border,
+        color: colors.textMain,
     },
     imagePreview: {
         width: '100%',
         aspectRatio: 1,
         borderRadius: SIZES.radiusCard,
-        marginBottom: 20,
+        marginBottom: 20
     },
 
     // --- BUTTONS ---
     buttonRow: {
         flexDirection: 'row',
-        gap: SPACING.m,
+        gap: SPACING.m
     },
     buttonBase: {
         flex: 1,
@@ -98,25 +100,25 @@ export const globalStyles = StyleSheet.create({
         elevation: 3,
     },
     buttonPrimary: {
-        backgroundColor: COLORS.primary,
+        backgroundColor: colors.primary
     },
     buttonSecondary: {
-        backgroundColor: COLORS.surface,
+        backgroundColor: colors.surface,
         borderWidth: 1,
-        borderColor: COLORS.border,
+        borderColor: colors.border
     },
     buttonDanger: {
-        backgroundColor: COLORS.danger,
+        backgroundColor: colors.danger
     },
     buttonTextLight: {
-        color: COLORS.textLight,
+        color: colors.textLight,
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 16
     },
     buttonTextDark: {
-        color: COLORS.textMain,
+        color: colors.textMain,
         fontWeight: 'bold',
-        fontSize: 16,
+        fontSize: 16
     },
 
     // --- CAMERA SPECIFIC ---
@@ -125,27 +127,58 @@ export const globalStyles = StyleSheet.create({
         aspectRatio: 1,
         borderRadius: SIZES.radiusCard,
         overflow: 'hidden',
-        backgroundColor: COLORS.black,
-        elevation: 5,
+        backgroundColor: colors.black,
+        elevation: 5
     },
     cameraButtonContainer: {
         flexDirection: 'row',
         width: '90%',
         gap: SPACING.m,
-        marginTop: 20,
+        marginTop: 20
     },
 
     // --- MODALS ---
     modalContent: {
         flex: 1,
-        backgroundColor: COLORS.background,
-        paddingTop: SPACING.modalTop,
+        backgroundColor: colors.background,
+        paddingTop: SPACING.modalTop
     },
     modalTitle: {
         fontSize: SIZES.fontTitle,
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 10,
-        color: COLORS.textMain,
-    }
+        color: colors.textMain
+    },
+
+    // --- SEGMENTED CONTROL (Theme switcher) ---
+    segmentedControlWrapper: {
+        flexDirection: 'row',
+        backgroundColor: colors.border,
+        borderRadius: SIZES.radiusSmall,
+        padding: 4,
+        width: '100%',
+        height: 50,
+    },
+    segment: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: SIZES.radiusSmall - 2,
+    },
+    activeSegment: {
+        backgroundColor: colors.surface,
+        elevation: 2,
+        shadowColor: colors.black,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+    },
+    segmentText: {
+        fontSize: SIZES.fontSmall,
+        fontWeight: '600',
+        color: colors.textMain,
+    },
+    activeSegmentText: {
+        color: colors.primary,
+    },
 });

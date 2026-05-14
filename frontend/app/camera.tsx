@@ -4,9 +4,13 @@ import { Button, Text, TouchableOpacity, View, Alert, ScrollView } from 'react-n
 import * as Location from 'expo-location';
 import { useIsFocused } from '@react-navigation/native';
 import ObservationForm from '../components/ObservationForm';
-import { globalStyles } from '@/styles/globalStyles';
+import { useTheme } from '../context/ThemeContext';
+import { getGlobalStyles } from '../styles/globalStyles';
 
 export default function CameraScreen() {
+    const { colors } = useTheme();
+    const styles = getGlobalStyles(colors);
+
     const [facing, setFacing] = useState<CameraType>('back');
     const [image, setImage] = useState<string | null>(null);
     const [latitude, setLatitude] = useState<number | null>(null);
@@ -68,21 +72,24 @@ export default function CameraScreen() {
         setLongitude(null);
     };
 
-    if (!permission) return <View />;
+    if (!permission) return <View style={styles.container} />;
     if (!permission.granted) {
         return (
-            <View style={globalStyles.container}>
-                <Text style={{ textAlign: 'center', paddingTop: 100 }}>We need your permission to show the camera</Text>
-                <Button onPress={requestPermission} title="Grant Permission" />
+            <View style={styles.container}>
+                <Text style={{ textAlign: 'center', paddingTop: 100, color: colors.textMain }}>
+                    We need your permission to show the camera
+                </Text>
+                <Button onPress={requestPermission} title="Grant Permission" color={colors.primary} />
             </View>
         );
     }
 
+    // View after taking a picture (The Form)
     if (image) {
         return (
-            <ScrollView style={globalStyles.container}>
-                <View style={globalStyles.formWrapper}>
-                    <Text style={globalStyles.modalTitle}>New Observation</Text>
+            <ScrollView style={styles.container}>
+                <View style={styles.formWrapper}>
+                    <Text style={styles.modalTitle}>New Observation</Text>
                     <ObservationForm
                         initialData={{ speciesName: '', imagePath: image }}
                         onSave={saveNewObservation}
@@ -94,12 +101,13 @@ export default function CameraScreen() {
         )
     }
 
+    // View while taking a picture (The Camera)
     return (
-        <View style={globalStyles.container}>
-            <View style={globalStyles.formWrapper}>
-                <Text style={globalStyles.modalTitle}>Capture Species</Text>
+        <View style={styles.container}>
+            <View style={styles.formWrapper}>
+                <Text style={styles.modalTitle}>Capture Species</Text>
 
-                <View style={globalStyles.cameraWrapper}>
+                <View style={styles.cameraWrapper}>
                     {isFocused && (
                         <CameraView
                             ref={cameraRef}
@@ -109,19 +117,19 @@ export default function CameraScreen() {
                     )}
                 </View>
 
-                <View style={globalStyles.cameraButtonContainer}>
+                <View style={styles.cameraButtonContainer}>
                     <TouchableOpacity
-                        style={[globalStyles.buttonBase, globalStyles.buttonSecondary]}
+                        style={[styles.buttonBase, styles.buttonSecondary]}
                         onPress={() => setFacing(f => f === 'back' ? 'front' : 'back')}
                     >
-                        <Text style={globalStyles.buttonTextDark}>Flip</Text>
+                        <Text style={styles.buttonTextDark}>Flip</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[globalStyles.buttonBase, globalStyles.buttonPrimary]}
+                        style={[styles.buttonBase, styles.buttonPrimary]}
                         onPress={takePicture}
                     >
-                        <Text style={globalStyles.buttonTextLight}>Capture</Text>
+                        <Text style={styles.buttonTextLight}>Capture</Text>
                     </TouchableOpacity>
                 </View>
             </View>

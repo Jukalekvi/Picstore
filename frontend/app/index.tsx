@@ -1,11 +1,16 @@
 import { Text, View } from "react-native";
-import { globalStyles } from "@/styles/globalStyles";
+import { useTheme } from "../context/ThemeContext";
+import { getGlobalStyles } from "../styles/globalStyles";
 
 export default function Index() {
+    const { colors } = useTheme();
+    const styles = getGlobalStyles(colors);
+
     return (
-        <View style={globalStyles.centeredContent}>
-            <Text style={{ textAlign: 'center' }}>
-                Welcome to Picstore, the application for filling galleries with pictures you have taken and sharing them with
+        <View style={styles.centeredContent}>
+            <Text style={[styles.mainTitle, { fontSize: 28 }]}>Picstore</Text>
+            <Text style={{ textAlign: 'center', color: colors.textMain, fontSize: 16 }}>
+                Welcome to Picstore, the application for filling galleries with pictures you have taken and sharing them with.
             </Text>
         </View>
     );
