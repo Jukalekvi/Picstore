@@ -28,7 +28,6 @@ export default function Gallery() {
             });
     };
 
-    // Function for removing an observation from the backend and the user interface
     const deleteObservation = (id: number) => {
         Alert.alert(
             "Delete Observation",
@@ -45,7 +44,7 @@ export default function Gallery() {
                             });
 
                             if (response.ok) {
-                                // Update the local state by removing the item using a filter
+                                // Update local state by filtering out the deleted item
                                 setObservations(prev => prev.filter(obs => obs.id !== id));
                             } else {
                                 Alert.alert("Error", "Server failed to delete the item.");
@@ -60,7 +59,7 @@ export default function Gallery() {
         );
     };
 
-    // Use `useFocusEffect` instead of `useEffect` so that the query runs every time the page is loaded
+    // Refetch data every time the screen comes into focus
     useFocusEffect(
         useCallback(() => {
             fetchObservations();
@@ -68,7 +67,6 @@ export default function Gallery() {
     );
 
     if (loading) {
-        // ActivityIndicator to give loading a more professional look
         return (
             <View style={styles.center}>
                 <ActivityIndicator size="large" color="#4CAF50" />
@@ -93,12 +91,9 @@ export default function Gallery() {
                         <View style={styles.infoRow}>
                             <View style={styles.info}>
                                 <Text style={styles.speciesName}>{item.speciesName}</Text>
-                                <Text style={styles.coords}>
-                                    Lat: {item.latitude?.toFixed(4)}, Lon: {item.longitude?.toFixed(4)}
-                                </Text>
+                                {/* Coordinates (Lat/Lon) removed from UI */}
                             </View>
 
-                            {/* delete-button */}
                             <TouchableOpacity
                                 style={styles.deleteButton}
                                 onPress={() => deleteObservation(item.id)}
@@ -159,11 +154,6 @@ const styles = StyleSheet.create({
     speciesName: {
         fontSize: 18,
         fontWeight: 'bold'
-    },
-    coords: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 5
     },
     deleteButton: {
         backgroundColor: '#FFEBEE',

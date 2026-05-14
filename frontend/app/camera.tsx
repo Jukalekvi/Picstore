@@ -14,7 +14,6 @@ export default function App() {
 
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef<CameraView>(null);
-
     const isFocused = useIsFocused();
 
     const saveObservation = async () => {
@@ -35,30 +34,32 @@ export default function App() {
             });
 
             if (response.ok) {
-                console.log('Successfully saved to backend');
                 Alert.alert("Success", "Observation saved!");
                 setImage(null);
                 setName('');
                 setLatitude(null);
                 setLongitude(null);
             } else {
-                Alert.alert("Error", "Failed to save.");
+                Alert.alert("Error", "Failed to save observation.");
             }
         } catch (error) {
-            Alert.alert("Error", "Connection error.");
+            console.error('Save error:', error);
+            Alert.alert("Error", "Could not connect to the server.");
         }
     };
 
     const takePicture = async () => {
-        // Added a check to ensure that cameraRef is ready and the camera is "mounted"
         if (cameraRef.current) {
             try {
+                // Request location before taking the picture
                 let { status } = await Location.requestForegroundPermissionsAsync();
 
                 if (status !== 'granted') {
-                    console.log('Permission to access location was denied');
+                    console.warn('Location permission denied');
                 } else {
-                    let loc = await Location.getCurrentPositionAsync({});
+                    let loc = await Location.getCurrentPositionAsync({
+                        accuracy: Location.Accuracy.Balanced
+                    });
                     setLatitude(loc.coords.latitude);
                     setLongitude(loc.coords.longitude);
                 }
@@ -68,8 +69,8 @@ export default function App() {
                     setImage(photo.uri);
                 }
             } catch (e) {
-                console.log("Error taking picture:", e);
-                Alert.alert("Error", "Camera is not ready yet.");
+                console.error("Camera error:", e);
+                Alert.alert("Error", "Failed to capture image.");
             }
         }
     }
@@ -82,7 +83,7 @@ export default function App() {
         return (
             <View style={styles.container}>
                 <Text style={styles.message}>We need your permission to show the camera</Text>
-                <Button onPress={requestPermission} title="grant permission" />
+                <Button onPress={requestPermission} title="Grant Permission" />
             </View>
         );
     }
@@ -91,24 +92,23 @@ export default function App() {
         setFacing(current => (current === 'back' ? 'front' : 'back'));
     }
 
+    // Preview mode after taking a photo
     if (image) {
         return (
             <View style={styles.container}>
                 <Image source={{uri: image}} style={styles.preview} />
 
-                <Text style={{color: 'white', marginBottom: 10}}>
-                    Coords: {latitude?.toFixed(4)}, {longitude?.toFixed(4)}
-                </Text>
-
+                {/* Form fields - Coordinates hidden from user */}
                 <TextInput
                     style={styles.input}
-                    placeholder={'Enter the name of the species'}
+                    placeholder={'Species name'}
                     value={name}
                     onChangeText={setName}
                 />
+
                 <View style={styles.formButtonContainer}>
                     <TouchableOpacity
-                        style={[styles.saveButton, {backgroundColor:'red'}]}
+                        style={[styles.saveButton, {backgroundColor:'#f44336'}]}
                         onPress={() => {
                             setImage(null);
                             setName('');
@@ -116,22 +116,23 @@ export default function App() {
                             setLongitude(null);
                         }}
                     >
-                        <Text style={styles.button_text}>Cancel</Text>
+                        <Text style={styles.buttonText}>Cancel</Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
                         style={styles.saveButton}
                         onPress={saveObservation}
                     >
-                        <Text style={styles.button_text}>Save</Text>
+                        <Text style={styles.buttonText}>Save</Text>
                     </TouchableOpacity>
                 </View>
             </View>
         )
     }
 
+    // Standard camera view
     return (
         <View style={styles.container}>
-            {/* Render the camera only if the page is active (isFocused) */}
             {isFocused && (
                 <CameraView
                     ref={cameraRef}
@@ -143,12 +144,12 @@ export default function App() {
                 <TouchableOpacity
                     style={styles.button}
                     onPress={toggleCameraFacing}>
-                    <Text style={styles.button_text}>Flip</Text>
+                    <Text style={styles.buttonText}>Flip</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.button}
                     onPress={takePicture}>
-                    <Text style={styles.button_text}>Take picture</Text>
+                    <Text style={styles.buttonText}>Capture</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'black',
+        backgroundColor: '#121212',
     },
     message: {
         textAlign: 'center',
@@ -171,41 +172,38 @@ const styles = StyleSheet.create({
         aspectRatio: 1,
         margin: '5%',
         borderRadius: 15,
-        width: '75%',
+        width: '85%',
     },
     buttonContainer: {
         position: 'absolute',
-        bottom: 64,
+        bottom: 40,
         flexDirection: 'row',
-        backgroundColor: 'transparent',
         width: '100%',
-        paddingHorizontal: 64,
-        paddingVertical: 64,
-        gap: 10
+        paddingHorizontal: 40,
+        gap: 15
     },
     button: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'white',
-        borderRadius: 30,
-        overflow: 'hidden',
+        borderRadius: 25,
         paddingVertical: 15
     },
-    button_text: {
-        fontSize: 18,
+    buttonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
         color: 'black',
-        textAlign: 'center'
     },
     preview: {
-        width: '80%',
+        width: '85%',
         aspectRatio: 1,
         borderRadius: 15,
         marginBottom: 20,
     },
     input: {
         backgroundColor: 'white',
-        width: '80%',
+        width: '85%',
         padding: 15,
         borderRadius: 10,
         fontSize: 18,
@@ -214,14 +212,13 @@ const styles = StyleSheet.create({
     saveButton: {
         flex: 1,
         backgroundColor: '#4CAF50',
-        paddingHorizontal: 10,
         paddingVertical: 15,
-        borderRadius: 20,
+        borderRadius: 25,
         alignItems: 'center'
     },
     formButtonContainer: {
         flexDirection: 'row',
-        gap: 20,
-        width: '80%',
+        gap: 15,
+        width: '85%',
     },
 });
