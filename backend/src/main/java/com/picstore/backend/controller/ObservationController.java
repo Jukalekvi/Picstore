@@ -39,4 +39,17 @@ public class ObservationController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // Edit an observation
+    @PutMapping("/{id}")
+    public ResponseEntity<Observation> updateObservation(@PathVariable Long id, @RequestBody Observation details) {
+        return observationRepository.findById(id)
+                .map(observation -> {
+                    observation.setSpeciesName(details.getSpeciesName());
+                    // We can decide if we want to allow updating location or image here too
+                    Observation updated = observationRepository.save(observation);
+                    return ResponseEntity.ok(updated);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
