@@ -1,12 +1,46 @@
-import { Text, View } from "react-native";
-import { globalStyles } from "@/styles/globalStyles";
+import { Text, View, TouchableOpacity } from "react-native";
+import { useTheme } from "../context/ThemeContext";
+import { getGlobalStyles } from "../styles/globalStyles";
 
 export default function Settings() {
+    const { themeMode, setThemeMode, colors } = useTheme();
+    const styles = getGlobalStyles(colors);
+
+    const Segment = ({ mode, label }: { mode: 'light' | 'device' | 'dark', label: string }) => {
+        const isActive = themeMode === mode;
+
+        return (
+            <TouchableOpacity
+                style={[styles.segment, isActive && styles.activeSegment]}
+                onPress={() => setThemeMode(mode)}
+                activeOpacity={0.7}
+            >
+                <Text style={[styles.segmentText, isActive && styles.activeSegmentText]}>
+                    {label}
+                </Text>
+            </TouchableOpacity>
+        );
+    };
+
     return (
-        <View style={globalStyles.centeredContent}>
-            <Text style={{ textAlign: 'center' }}>
-                Welcome to the settings, here you can adjust your application as you please
-            </Text>
+        <View style={styles.centeredContent}>
+            <Text style={styles.mainTitle}>Settings</Text>
+
+            <View style={{ width: '100%', paddingHorizontal: 10 }}>
+                <Text style={{ color: colors.textMain, marginBottom: 12, fontWeight: '600' }}>
+                    Appearance
+                </Text>
+
+                <View style={styles.segmentedControlWrapper}>
+                    <Segment mode="light" label="Light" />
+                    <Segment mode="device" label="System" />
+                    <Segment mode="dark" label="Dark" />
+                </View>
+
+                <Text style={{ color: colors.textMain, marginTop: 12, fontSize: 12, opacity: 0.6, textAlign: 'center' }}>
+                    Currently using {themeMode} mode
+                </Text>
+            </View>
         </View>
     );
 }

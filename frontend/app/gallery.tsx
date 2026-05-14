@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { Text, View, FlatList, Image, ActivityIndicator, TouchableOpacity, Alert, Modal } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import ObservationForm from '../components/ObservationForm';
-import { globalStyles } from '@/styles/globalStyles';
+import { useTheme } from '../context/ThemeContext';
+import { getGlobalStyles } from '../styles/globalStyles';
 
 interface Observation {
     id: number;
@@ -14,6 +15,9 @@ interface Observation {
 }
 
 export default function Gallery() {
+    const { colors } = useTheme();
+    const styles = getGlobalStyles(colors);
+
     const [observations, setObservations] = useState<Observation[]>([]);
     const [loading, setLoading] = useState(true);
     const [editingObservation, setEditingObservation] = useState<Observation | null>(null);
@@ -92,19 +96,19 @@ export default function Gallery() {
 
     if (loading) {
         return (
-            <View style={globalStyles.centeredContent}>
-                <ActivityIndicator size="large" color="#4CAF50" />
+            <View style={styles.centeredContent}>
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         );
     }
 
     return (
-        <View style={[globalStyles.container, globalStyles.screenPadding]}>
-            <Text style={globalStyles.mainTitle}>Your Collection</Text>
+        <View style={[styles.container, styles.screenPadding]}>
+            <Text style={styles.mainTitle}>Your Collection</Text>
 
             <Modal visible={editingObservation !== null} animationType="slide">
-                <View style={globalStyles.modalContent}>
-                    <Text style={globalStyles.modalTitle}>Edit Observation</Text>
+                <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Edit Observation</Text>
                     {editingObservation && (
                         <ObservationForm
                             initialData={{
@@ -123,26 +127,26 @@ export default function Gallery() {
                 data={observations}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                    <View style={globalStyles.card}>
-                        <Image source={{ uri: item.imagePath }} style={globalStyles.cardImage} />
-                        <View style={globalStyles.cardInfoRow}>
-                            <View style={globalStyles.cardTextContainer}>
-                                <Text style={globalStyles.speciesText}>{item.speciesName}</Text>
+                    <View style={styles.card}>
+                        <Image source={{ uri: item.imagePath }} style={styles.cardImage} />
+                        <View style={styles.cardInfoRow}>
+                            <View style={styles.cardTextContainer}>
+                                <Text style={styles.speciesText}>{item.speciesName}</Text>
                             </View>
 
                             <View style={{ flexDirection: 'row', gap: 10 }}>
                                 <TouchableOpacity
-                                    style={{ backgroundColor: '#E3F2FD', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 }}
+                                    style={{ backgroundColor: colors.infoLight, paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 }}
                                     onPress={() => setEditingObservation(item)}
                                 >
-                                    <Text style={{ color: '#1976D2', fontWeight: 'bold' }}>Edit</Text>
+                                    <Text style={{ color: colors.secondary, fontWeight: 'bold' }}>Edit</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={{ backgroundColor: '#FFEBEE', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 }}
+                                    style={{ backgroundColor: colors.dangerLight, paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 }}
                                     onPress={() => deleteObservation(item.id)}
                                 >
-                                    <Text style={{ color: '#D32F2F', fontWeight: 'bold' }}>Delete</Text>
+                                    <Text style={{ color: colors.danger, fontWeight: 'bold' }}>Delete</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
