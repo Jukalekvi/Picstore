@@ -1,25 +1,23 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Image, TextInput, Alert } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, Alert, ScrollView } from 'react-native';
 import * as Location from 'expo-location';
 import { useIsFocused } from '@react-navigation/native';
+import ObservationForm from '../components/ObservationForm';
 
-export default function App() {
+export default function CameraScreen() {
     const [facing, setFacing] = useState<CameraType>('back');
     const [image, setImage] = useState<string | null>(null);
-    const [name, setName] = useState('');
-
     const [latitude, setLatitude] = useState<number | null>(null);
     const [longitude, setLongitude] = useState<number | null>(null);
 
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef<CameraView>(null);
-
     const isFocused = useIsFocused();
 
-    const saveObservation = async () => {
+    const saveNewObservation = async (formData: { speciesName: string }) => {
         const observationData = {
-            speciesName: name,
+            speciesName: formData.speciesName,
             imagePath: image,
             latitude: latitude,
             longitude: longitude
@@ -28,128 +26,105 @@ export default function App() {
         try {
             const response = await fetch('http://192.168.0.121:8080/api/observations', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(observationData),
             });
 
             if (response.ok) {
-                console.log('Successfully saved to backend');
                 Alert.alert("Success", "Observation saved!");
-                setImage(null);
-                setName('');
-                setLatitude(null);
-                setLongitude(null);
+                resetForm();
             } else {
-                Alert.alert("Error", "Failed to save.");
+                Alert.alert("Error", "Failed to save observation.");
             }
         } catch (error) {
-            Alert.alert("Error", "Connection error.");
+            console.error('Save error:', error);
+            Alert.alert("Error", "Could not connect to the server.");
         }
     };
 
     const takePicture = async () => {
-        // Added a check to ensure that cameraRef is ready and the camera is "mounted"
         if (cameraRef.current) {
             try {
                 let { status } = await Location.requestForegroundPermissionsAsync();
-
-                if (status !== 'granted') {
-                    console.log('Permission to access location was denied');
-                } else {
-                    let loc = await Location.getCurrentPositionAsync({});
+                if (status === 'granted') {
+                    let loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
                     setLatitude(loc.coords.latitude);
                     setLongitude(loc.coords.longitude);
                 }
 
                 const photo = await cameraRef.current.takePictureAsync();
-                if (photo) {
-                    setImage(photo.uri);
-                }
+                if (photo) setImage(photo.uri);
             } catch (e) {
-                console.log("Error taking picture:", e);
-                Alert.alert("Error", "Camera is not ready yet.");
+                console.error("Camera error:", e);
+                Alert.alert("Error", "Failed to capture image.");
             }
         }
     }
 
-    if (!permission) {
-        return <View />;
-    }
+    const resetForm = () => {
+        setImage(null);
+        setLatitude(null);
+        setLongitude(null);
+    };
 
+    if (!permission) return <View />;
     if (!permission.granted) {
         return (
             <View style={styles.container}>
                 <Text style={styles.message}>We need your permission to show the camera</Text>
-                <Button onPress={requestPermission} title="grant permission" />
+                <Button onPress={requestPermission} title="Grant Permission" />
             </View>
         );
     }
 
-    function toggleCameraFacing() {
-        setFacing(current => (current === 'back' ? 'front' : 'back'));
-    }
-
+    // View after taking a picture (The Form)
     if (image) {
         return (
-            <View style={styles.container}>
-                <Image source={{uri: image}} style={styles.preview} />
-
-                <Text style={{color: 'white', marginBottom: 10}}>
-                    Coords: {latitude?.toFixed(4)}, {longitude?.toFixed(4)}
-                </Text>
-
-                <TextInput
-                    style={styles.input}
-                    placeholder={'Enter the name of the species'}
-                    value={name}
-                    onChangeText={setName}
-                />
-                <View style={styles.formButtonContainer}>
-                    <TouchableOpacity
-                        style={[styles.saveButton, {backgroundColor:'red'}]}
-                        onPress={() => {
-                            setImage(null);
-                            setName('');
-                            setLatitude(null);
-                            setLongitude(null);
-                        }}
-                    >
-                        <Text style={styles.button_text}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.saveButton}
-                        onPress={saveObservation}
-                    >
-                        <Text style={styles.button_text}>Save</Text>
-                    </TouchableOpacity>
+            <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+                <View style={styles.formWrapper}>
+                    <Text style={styles.formTitle}>New Observation</Text>
+                    <ObservationForm
+                        initialData={{ speciesName: '', imagePath: image }}
+                        onSave={saveNewObservation}
+                        onCancel={resetForm}
+                        saveButtonText="Save Observation"
+                    />
                 </View>
-            </View>
+            </ScrollView>
         )
     }
 
+    // View while taking a picture (The Camera)
     return (
         <View style={styles.container}>
-            {/* Render the camera only if the page is active (isFocused) */}
-            {isFocused && (
-                <CameraView
-                    ref={cameraRef}
-                    style={styles.camera}
-                    facing={facing}
-                />
-            )}
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={toggleCameraFacing}>
-                    <Text style={styles.button_text}>Flip</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={takePicture}>
-                    <Text style={styles.button_text}>Take picture</Text>
-                </TouchableOpacity>
+            <View style={styles.formWrapper}>
+                <Text style={styles.formTitle}>Capture Species</Text>
+
+                <View style={styles.cameraWrapper}>
+                    {isFocused && (
+                        <CameraView
+                            ref={cameraRef}
+                            style={styles.camera}
+                            facing={facing}
+                        />
+                    )}
+                </View>
+
+                <View style={styles.cameraButtonContainer}>
+                    <TouchableOpacity
+                        style={[styles.button, styles.secondaryButton]}
+                        onPress={() => setFacing(f => f === 'back' ? 'front' : 'back')}
+                    >
+                        <Text style={styles.secondaryButtonText}>Flip</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.button, styles.primaryButton]}
+                        onPress={takePicture}
+                    >
+                        <Text style={styles.primaryButtonText}>Capture</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );
@@ -158,70 +133,72 @@ export default function App() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'black',
+        backgroundColor: '#f5f5f5',
     },
-    message: {
+    scrollContent: {
+        paddingBottom: 40
+    },
+    formWrapper: {
+        width: '100%',
+        paddingTop: 60,
+        alignItems: 'center'
+    },
+    formTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#333',
         textAlign: 'center',
-        paddingBottom: 10,
-        color: 'white'
+        marginBottom: 20
+    },
+    cameraWrapper: {
+        width: '90%', // Matches the image width in ObservationForm
+        aspectRatio: 1,
+        borderRadius: 15,
+        overflow: 'hidden',
+        backgroundColor: '#000',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
     },
     camera: {
-        aspectRatio: 1,
-        margin: '5%',
-        borderRadius: 15,
-        width: '75%',
+        flex: 1,
     },
-    buttonContainer: {
-        position: 'absolute',
-        bottom: 64,
+    cameraButtonContainer: {
         flexDirection: 'row',
-        backgroundColor: 'transparent',
-        width: '100%',
-        paddingHorizontal: 64,
-        paddingVertical: 64,
-        gap: 10
+        width: '90%',
+        gap: 15,
+        marginTop: 20,
+        paddingHorizontal: 10
     },
     button: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'white',
-        borderRadius: 30,
-        overflow: 'hidden',
-        paddingVertical: 15
-    },
-    button_text: {
-        fontSize: 18,
-        color: 'black',
-        textAlign: 'center'
-    },
-    preview: {
-        width: '80%',
-        aspectRatio: 1,
-        borderRadius: 15,
-        marginBottom: 20,
-    },
-    input: {
-        backgroundColor: 'white',
-        width: '80%',
-        padding: 15,
-        borderRadius: 10,
-        fontSize: 18,
-        marginBottom: 20,
-    },
-    saveButton: {
-        flex: 1,
-        backgroundColor: '#4CAF50',
-        paddingHorizontal: 10,
+        borderRadius: 25,
         paddingVertical: 15,
-        borderRadius: 20,
-        alignItems: 'center'
+        elevation: 3
     },
-    formButtonContainer: {
-        flexDirection: 'row',
-        gap: 20,
-        width: '80%',
+    primaryButton: {
+        backgroundColor: '#4CAF50',
     },
+    secondaryButton: {
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#ddd'
+    },
+    primaryButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: 'white'
+    },
+    secondaryButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333'
+    },
+    message: {
+        textAlign: 'center',
+        paddingTop: 100
+    }
 });
