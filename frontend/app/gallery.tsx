@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { Text, View, FlatList, StyleSheet, Image, ActivityIndicator, TouchableOpacity, Alert, Modal } from "react-native";
+import { Text, View, FlatList, Image, ActivityIndicator, TouchableOpacity, Alert, Modal } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
-import ObservationForm from '../components/ObservationForm'; // Path to our new shared component
+import ObservationForm from '../components/ObservationForm';
+import { globalStyles } from '@/styles/globalStyles';
 
 interface Observation {
     id: number;
@@ -73,7 +74,7 @@ export default function Gallery() {
             if (response.ok) {
                 Alert.alert("Success", "Observation updated!");
                 setEditingObservation(null);
-                fetchObservations(); // Refresh the list
+                fetchObservations();
             } else {
                 Alert.alert("Error", "Failed to update.");
             }
@@ -91,20 +92,19 @@ export default function Gallery() {
 
     if (loading) {
         return (
-            <View style={styles.center}>
+            <View style={globalStyles.centeredContent}>
                 <ActivityIndicator size="large" color="#4CAF50" />
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Your Collection</Text>
+        <View style={[globalStyles.container, globalStyles.screenPadding]}>
+            <Text style={globalStyles.mainTitle}>Your Collection</Text>
 
-            {/* Modal for editing an observation */}
             <Modal visible={editingObservation !== null} animationType="slide">
-                <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Edit Observation</Text>
+                <View style={globalStyles.modalContent}>
+                    <Text style={globalStyles.modalTitle}>Edit Observation</Text>
                     {editingObservation && (
                         <ObservationForm
                             initialData={{
@@ -123,26 +123,26 @@ export default function Gallery() {
                 data={observations}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                    <View style={styles.card}>
-                        <Image source={{ uri: item.imagePath }} style={styles.cardImage} />
-                        <View style={styles.infoRow}>
-                            <View style={styles.info}>
-                                <Text style={styles.speciesName}>{item.speciesName}</Text>
+                    <View style={globalStyles.card}>
+                        <Image source={{ uri: item.imagePath }} style={globalStyles.cardImage} />
+                        <View style={globalStyles.cardInfoRow}>
+                            <View style={globalStyles.cardTextContainer}>
+                                <Text style={globalStyles.speciesText}>{item.speciesName}</Text>
                             </View>
 
-                            <View style={styles.actionButtons}>
+                            <View style={{ flexDirection: 'row', gap: 10 }}>
                                 <TouchableOpacity
-                                    style={styles.editButton}
+                                    style={{ backgroundColor: '#E3F2FD', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 }}
                                     onPress={() => setEditingObservation(item)}
                                 >
-                                    <Text style={styles.editButtonText}>Edit</Text>
+                                    <Text style={{ color: '#1976D2', fontWeight: 'bold' }}>Edit</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={styles.deleteButton}
+                                    style={{ backgroundColor: '#FFEBEE', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 }}
                                     onPress={() => deleteObservation(item.id)}
                                 >
-                                    <Text style={styles.deleteButtonText}>Delete</Text>
+                                    <Text style={{ color: '#D32F2F', fontWeight: 'bold' }}>Delete</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -152,36 +152,3 @@ export default function Gallery() {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        paddingHorizontal: 20,
-        paddingTop: 50
-    },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', color: '#333' },
-    card: { backgroundColor: 'white', borderRadius: 15, marginBottom: 15, overflow: 'hidden', elevation: 3 },
-    cardImage: { width: '100%', height: 200 },
-    infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingRight: 15 },
-    info: { padding: 15, flex: 1 },
-    speciesName: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-    actionButtons: { flexDirection: 'row', gap: 10 },
-    editButton: { backgroundColor: '#E3F2FD', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 },
-    editButtonText: { color: '#1976D2', fontWeight: 'bold' },
-    deleteButton: { backgroundColor: '#FFEBEE', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 },
-    deleteButtonText: { color: '#D32F2F', fontWeight: 'bold' },
-    modalContent: {
-        flex: 1,
-        backgroundColor: '#f5f5f5', // Identical to Camera screen
-        paddingTop: 60
-    },
-    modalTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 10,
-        color: '#333'
-    }
-});
