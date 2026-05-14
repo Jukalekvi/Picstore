@@ -1,9 +1,10 @@
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, Alert, ScrollView } from 'react-native';
+import { Button, Text, TouchableOpacity, View, Alert, ScrollView } from 'react-native';
 import * as Location from 'expo-location';
 import { useIsFocused } from '@react-navigation/native';
 import ObservationForm from '../components/ObservationForm';
+import { globalStyles } from '@/styles/globalStyles';
 
 export default function CameraScreen() {
     const [facing, setFacing] = useState<CameraType>('back');
@@ -70,19 +71,18 @@ export default function CameraScreen() {
     if (!permission) return <View />;
     if (!permission.granted) {
         return (
-            <View style={styles.container}>
-                <Text style={styles.message}>We need your permission to show the camera</Text>
+            <View style={globalStyles.container}>
+                <Text style={{ textAlign: 'center', paddingTop: 100 }}>We need your permission to show the camera</Text>
                 <Button onPress={requestPermission} title="Grant Permission" />
             </View>
         );
     }
 
-    // View after taking a picture (The Form)
     if (image) {
         return (
-            <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-                <View style={styles.formWrapper}>
-                    <Text style={styles.formTitle}>New Observation</Text>
+            <ScrollView style={globalStyles.container}>
+                <View style={globalStyles.formWrapper}>
+                    <Text style={globalStyles.modalTitle}>New Observation</Text>
                     <ObservationForm
                         initialData={{ speciesName: '', imagePath: image }}
                         onSave={saveNewObservation}
@@ -94,111 +94,37 @@ export default function CameraScreen() {
         )
     }
 
-    // View while taking a picture (The Camera)
     return (
-        <View style={styles.container}>
-            <View style={styles.formWrapper}>
-                <Text style={styles.formTitle}>Capture Species</Text>
+        <View style={globalStyles.container}>
+            <View style={globalStyles.formWrapper}>
+                <Text style={globalStyles.modalTitle}>Capture Species</Text>
 
-                <View style={styles.cameraWrapper}>
+                <View style={globalStyles.cameraWrapper}>
                     {isFocused && (
                         <CameraView
                             ref={cameraRef}
-                            style={styles.camera}
+                            style={{ flex: 1 }}
                             facing={facing}
                         />
                     )}
                 </View>
 
-                <View style={styles.cameraButtonContainer}>
+                <View style={globalStyles.cameraButtonContainer}>
                     <TouchableOpacity
-                        style={[styles.button, styles.secondaryButton]}
+                        style={[globalStyles.buttonBase, globalStyles.buttonSecondary]}
                         onPress={() => setFacing(f => f === 'back' ? 'front' : 'back')}
                     >
-                        <Text style={styles.secondaryButtonText}>Flip</Text>
+                        <Text style={globalStyles.buttonTextDark}>Flip</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.button, styles.primaryButton]}
+                        style={[globalStyles.buttonBase, globalStyles.buttonPrimary]}
                         onPress={takePicture}
                     >
-                        <Text style={styles.primaryButtonText}>Capture</Text>
+                        <Text style={globalStyles.buttonTextLight}>Capture</Text>
                     </TouchableOpacity>
                 </View>
             </View>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
-    scrollContent: {
-        paddingBottom: 40
-    },
-    formWrapper: {
-        width: '100%',
-        paddingTop: 60,
-        alignItems: 'center'
-    },
-    formTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#333',
-        textAlign: 'center',
-        marginBottom: 20
-    },
-    cameraWrapper: {
-        width: '90%', // Matches the image width in ObservationForm
-        aspectRatio: 1,
-        borderRadius: 15,
-        overflow: 'hidden',
-        backgroundColor: '#000',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-    },
-    camera: {
-        flex: 1,
-    },
-    cameraButtonContainer: {
-        flexDirection: 'row',
-        width: '90%',
-        gap: 15,
-        marginTop: 20,
-        paddingHorizontal: 10
-    },
-    button: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 25,
-        paddingVertical: 15,
-        elevation: 3
-    },
-    primaryButton: {
-        backgroundColor: '#4CAF50',
-    },
-    secondaryButton: {
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#ddd'
-    },
-    primaryButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: 'white'
-    },
-    secondaryButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333'
-    },
-    message: {
-        textAlign: 'center',
-        paddingTop: 100
-    }
-});
