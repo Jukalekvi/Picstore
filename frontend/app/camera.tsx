@@ -20,9 +20,11 @@ export default function CameraScreen() {
     const cameraRef = useRef<CameraView>(null);
     const isFocused = useIsFocused();
 
-    const saveNewObservation = async (formData: { speciesName: string }) => {
+    // Fixed TypeScript type definition here to include categoryId
+    const saveNewObservation = async (formData: { speciesName: string; categoryId: number }) => {
         const observationData = {
             speciesName: formData.speciesName,
+            categoryId: formData.categoryId,
             imagePath: image,
             latitude: latitude,
             longitude: longitude
@@ -64,7 +66,7 @@ export default function CameraScreen() {
                 Alert.alert("Error", "Failed to capture image.");
             }
         }
-    }
+    };
 
     const resetForm = () => {
         setImage(null);
@@ -98,7 +100,7 @@ export default function CameraScreen() {
                     />
                 </View>
             </ScrollView>
-        )
+        );
     }
 
     // View while taking a picture (The Camera)
