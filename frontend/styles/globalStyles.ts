@@ -181,4 +181,32 @@ export const getGlobalStyles = (colors: any) => StyleSheet.create({
     activeSegmentText: {
         color: colors.primary,
     },
+
+    // --- Category switcher (for the species) ---
+    categoryList: {
+        marginVertical: 15,
+        height: 100,
+    },
+    categoryItem: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+        marginRight: 15,
+        borderRadius: 15,
+        backgroundColor: colors.surface,
+        borderWidth: 2,
+        borderColor: 'transparent',
+        width: 90,
+        height: 80,
+    },
+    categoryItemActive: {
+        borderColor: colors.primary,
+        backgroundColor: colors.infoLight,
+    },
+    categoryText: {
+        fontSize: 10,
+        marginTop: 5,
+        color: colors.textMain,
+        textAlign: 'center',
+    },
 });
