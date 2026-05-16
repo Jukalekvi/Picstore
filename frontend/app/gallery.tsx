@@ -2,8 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { Text, View, FlatList, Image, ActivityIndicator, TouchableOpacity, Alert, Modal } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import ObservationForm from '../components/ObservationForm';
-import { useTheme } from '../context/ThemeContext';
-import { getGlobalStyles } from '../styles/globalStyles';
+import { useTheme } from '@/context/ThemeContext';
+import { getGlobalStyles } from '@/styles/globalStyles';
+import { CATEGORIES } from "@/constants/categories";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface Observation {
     id: number;
@@ -12,6 +14,7 @@ interface Observation {
     latitude: number;
     longitude: number;
     timestamp: string | null;
+    categoryId: number;
 }
 
 export default function Gallery() {
@@ -65,14 +68,18 @@ export default function Gallery() {
         );
     };
 
-    const updateObservation = async (formData: { speciesName: string }) => {
+    const updateObservation = async (formData: { speciesName: string, categoryId: number }) => {
         if (!editingObservation) return;
 
         try {
             const response = await fetch(`http://192.168.0.121:8080/api/observations/${editingObservation.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...editingObservation, // Keep existing fields like coordinates
+                    speciesName: formData.speciesName,
+                    categoryId: formData.categoryId
+                }),
             });
 
             if (response.ok) {
@@ -113,7 +120,8 @@ export default function Gallery() {
                         <ObservationForm
                             initialData={{
                                 speciesName: editingObservation.speciesName,
-                                imagePath: editingObservation.imagePath
+                                imagePath: editingObservation.imagePath,
+                                categoryId: editingObservation.categoryId
                             }}
                             onSave={updateObservation}
                             onCancel={() => setEditingObservation(null)}
@@ -131,22 +139,38 @@ export default function Gallery() {
                         <Image source={{ uri: item.imagePath }} style={styles.cardImage} />
                         <View style={styles.cardInfoRow}>
                             <View style={styles.cardTextContainer}>
-                                <Text style={styles.speciesText}>{item.speciesName}</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                                    {/* Category Icon - Set to black as requested */}
+                                    <View style={{
+                                        backgroundColor: 'rgba(0,0,0,0.05)',
+                                        padding: 6,
+                                        borderRadius: 8,
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}>
+                                        <MaterialCommunityIcons
+                                            name={(CATEGORIES.find(c => c.id === item.categoryId)?.icon || 'help-circle') as any}
+                                            size={22}
+                                            color="#000000"
+                                        />
+                                    </View>
+                                    <Text style={styles.speciesText}>{item.speciesName}</Text>
+                                </View>
                             </View>
 
                             <View style={{ flexDirection: 'row', gap: 10 }}>
                                 <TouchableOpacity
-                                    style={{ backgroundColor: colors.infoLight, paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 }}
+                                    style={{ backgroundColor: colors.infoLight, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 }}
                                     onPress={() => setEditingObservation(item)}
                                 >
-                                    <Text style={{ color: colors.secondary, fontWeight: 'bold' }}>Edit</Text>
+                                    <MaterialCommunityIcons name="pencil" size={18} color={colors.secondary} />
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={{ backgroundColor: colors.dangerLight, paddingVertical: 8, paddingHorizontal: 15, borderRadius: 8 }}
+                                    style={{ backgroundColor: colors.dangerLight, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 }}
                                     onPress={() => deleteObservation(item.id)}
                                 >
-                                    <Text style={{ color: colors.danger, fontWeight: 'bold' }}>Delete</Text>
+                                    <MaterialCommunityIcons name="trash-can" size={18} color={colors.danger} />
                                 </TouchableOpacity>
                             </View>
                         </View>

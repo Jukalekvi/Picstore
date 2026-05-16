@@ -15,17 +15,12 @@ public class Observation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String speciesName;
-
     private String imagePath;
-
-    // Fields for location coordinates
     private Double latitude;
-
     private Double longitude;
-
     private LocalDateTime timestamp;
+    private int categoryId;
 
     // This method runs automatically before the entity is saved to the database
     @PrePersist
